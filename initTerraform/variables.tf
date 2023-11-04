@@ -14,4 +14,3 @@ variable "regionvpc2" {}
 variable "vpcwest_cidr" {}
 variable "dep6publicSubnetC_cidr" {}
 variable "dep6publicSubnetD_cidr" {}
-
