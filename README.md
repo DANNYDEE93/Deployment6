@@ -1,25 +1,38 @@
-## <ins>Deployment 5.1: Retail Banking Flask Application on Gunicorn Production Environment through Jenkins and Terraform</ins>
+## <ins>Deployment 6: Retail Banking Flask Application Across Two Regions through a Jenkins Agent Infrastructure using Terraform</ins>
 _________________________________________________
 ##### Danielle Davis
-##### October 21, 2023
+##### October 28, 2023
 ______________________________________
 ### <ins>PURPOSE:</ins>
 ___________________
-&emsp;&emsp;&emsp;&emsp;	In previous deployments, I've used one server to deploy my web applications. In this current deployment, instead of manually building, testing, and deploying on one server, I utilized Terraform to automate the creation of an infrastructure for three servers. The first server or main server was installed with Jenkins and Deadsnakes PPA for the latest Python package and its dependencies. The main server runs Jenkins where we create the agent nodes, with one of each attached to the other two instances. The second and third instances were also installed with Deadsnakes PPA along with the Java Runtime Environment(JRE) package so the server communicates properly with the Jenkins agents nodes. The [Jenkinsfile](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/Jenkinsfile) and [app.py](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/app.py) scripts use the agent nodes through the Jenkins main server to import Flask for development and install Gunicorn on the agent servers. The agent nodes use SSH to connect with the agent servers and the nodes run the builds and deploy on the Gunicorn production web server. Instead of using commands to establish an SSH connection in the Jenkinsfile like in my [Deployment5](https://github.com/DANNYDEE93/Deployment5.git), I accessed the SSH connection through the Jenkins agent nodes. Once installed on my Ubuntu server, the agent nodes become Linux-based and use Flask (python framework) to develop and Gunicorn to deploy my Python web application. 
+&emsp;&emsp;&emsp;&emsp;	Instead of manually building, testing, and deploying in previous deployments, I utilized Terraform to automate the creation of a Jenkins agent infrastructure across 6 different servers within the N. Virginia and Oregon regions available in AWS cloud. I focused on reducing reducing resource contention by creating a larger Jenkins infrastructure compared to my Deployment 5.1. Using terraform to create my Jenkins manager server and main agent server in one availability zone, and additionally using terraform on my main agent server to create 4 more Jenkins agent servers in east and west regions, reduced my chances at having a single point of failure in case one of my AZ's has network failures. It also helps decrease my chances of downtime because if one server in one region goes down, I have another server available for incoming traffic. The use of my Jenkins agent nodes also help distribute the workload across the servers and provides reliability in the production of my web application. Lastly, I optimized my infrastructure further by creating load balancers for each availability zone to improve the performace and reliability of my web applications deployed on each server by evenly distributing incoming traffic so as not to overload my servers with client and user requests. 
+
+
+Description:
+
+The first server or main server was installed with Jenkins and Deadsnakes PPA for the latest Python package and its dependencies. The main server runs Jenkins where we create the agent nodes, with one of each attached to the other two instances. The second and third instances were also installed with Deadsnakes PPA along with the Java Runtime Environment(JRE) package so the server communicates properly with the Jenkins agents nodes. The [Jenkinsfile](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/Jenkinsfile) and [app.py](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/app.py) scripts use the agent nodes through the Jenkins main server to import Flask for development and install Gunicorn on the agent servers. The agent nodes use SSH to connect with the agent servers and the nodes run the builds and deploy on the Gunicorn production web server. Instead of using commands to establish an SSH connection in the Jenkinsfile like in my [Deployment5](https://github.com/DANNYDEE93/Deployment5.git), I accessed the SSH connection through the Jenkins agent nodes. Once installed on my Ubuntu server, the agent nodes become Linux-based and use Flask (python framework) to develop and Gunicorn to deploy my Python web application. 
+
  _________________________________
 ### <ins>ISSUES:</ins>
 __________________________________
-* GitHub: Merged my branches before pushing making only a main branch. I needed to create a second branch to run the build through the agent node on the third server because the main branch was running on the second instance through the IP address already. 
+* Terraform:
 
-* Jenkinsfile: The second node wasn't working until I changed the agent node name in the Jenkinsfile in the second branch I needed to change the agent name to "awsDeploy2" and needed to change the hostname to the third instance's IP address.
+* Jenkins agent nodes:
 
 * Deployment Process: After a successful test in Jenkins, my server was still unable to serve up the web application. I needed to run my Jenkins build multiple times, and upgrade my agent server, and then the application worked.
 ________________________________________________________________________________
 
 ### <ins> **STEPS FOR WEB APPLICATION DEPLOYMENT** </ins>
 
+_________________________________________________________________________________
+### Step 1: Diagram the infrastructure for Web Application Deployment
+_________________________________________________________________________________
+
+
+
+
 _____________________________________________________________________________
-### Step 1: Create a terraform file:
+### Step 2: Create a terraform file:
 __________________________________________________________________________
 	
 * Terraform is a great tool to automate the building of your application infrastructure instead of manually creating new instances with different installations separately. For this application, I wrote a terraform [main.tf](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/main.tf) file script in VS code. I created a main.tf file with defined variables and scripts for installation. For the first instance, the user data was connected to my [Jenkins script](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/jenkins.sh) to build and test my deployment. In the other two instances, the user data was connected to my [software script](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/software.sh) with the latest version of Python and automates the installation of dependencies for the python virtual environment. Including these scripts in the user data allowed me to automate their execution when Terraform created the instances. I also used a fourth server installed with [VS code](https://github.com/DANNYDEE93/Deployment5/blob/main/vscode.sh) and [Terraform](https://github.com/DANNYDEE93/Deployment5/blob/main/installterraform.sh) to use terraform in vs code to push to my remote Github repo. My main.tf file created an infrastructure that included: 
@@ -51,13 +64,19 @@ _____________________________________________________________________
 * **Terraform apply:** to execute infrastructure script
 
 ______________________________________________________________________________
-### Step 2: Git commits & Repo Changes 
+### Step 3: Git commits & Repo Changes 
 __________________________________________________________________________
 
 * Used VS code on my fourth instance and GitHub to make changes in my local repository. I added my GitHub URL in my .git config file to give the code editor permission to push changes to my remote repo on GitHub. I changed the agent name in the Jenkinsfile in the second branch, created my main.tf script, and included my scripts to download the applications I needed for my deployment and pushed my changes without merging so that each node could connect to their corresponding servers.
+
+
+____________________________________________________________________________
+### Step 5: Configure RDS Database
+__________________________________________________________________________
+
   
 ________________________________________________
-### Step 3: Configure and Run Jenkins Build
+### Step 4: Configure Jenkins Agent Infrastructure/ Build & Test in Jenkins 
 __________________________________________________________
 
 * Create Jenkins **Multibranch Pipeline** to build staging environment: Find instructions to access Jenkins in the web browser, create a multibranch pipeline, and create a token to link the GitHub repository with the application code to Jenkins [here](https://github.com/DANNYDEE93/Deployment4#step-8--create-staging-environment-in-jenkins). 
@@ -69,6 +88,9 @@ __________________________________________________________
 * [Instructions on how to create agent nodes in Jenkins.](https://scribehow.com/shared/Step-by-step_Guide_Creating_an_Agent_in_Jenkins__xeyUT01pSAiWXC3qN42q5w) *See the importance of the agent nodes explained further below.*
 
 ![system_diagram](static/images/D5.1nodes.png)
+
+
+
 
 ____________________________________________________________________________
 ### Step 5: Gunicorn Production Environment on Web Application Server
