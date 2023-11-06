@@ -1,163 +1,147 @@
-Deploy Banking Application across two Regions with a Jenkins Agent Infrastructure using Terraform
-October 28, 2023
+## <ins>Deployment 5.1: Retail Banking Flask Application on Gunicorn Production Environment through Jenkins and Terraform</ins>
+_________________________________________________
+##### Danielle Davis
+##### October 21, 2023
+______________________________________
+### <ins>PURPOSE:</ins>
+___________________
+&emsp;&emsp;&emsp;&emsp;	In previous deployments, I've used one server to deploy my web applications. In this current deployment, instead of manually building, testing, and deploying on one server, I utilized Terraform to automate the creation of an infrastructure for three servers. The first server or main server was installed with Jenkins and Deadsnakes PPA for the latest Python package and its dependencies. The main server runs Jenkins where we create the agent nodes, with one of each attached to the other two instances. The second and third instances were also installed with Deadsnakes PPA along with the Java Runtime Environment(JRE) package so the server communicates properly with the Jenkins agents nodes. The [Jenkinsfile](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/Jenkinsfile) and [app.py](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/app.py) scripts use the agent nodes through the Jenkins main server to import Flask for development and install Gunicorn on the agent servers. The agent nodes use SSH to connect with the agent servers and the nodes run the builds and deploy on the Gunicorn production web server. Instead of using commands to establish an SSH connection in the Jenkinsfile like in my [Deployment5](https://github.com/DANNYDEE93/Deployment5.git), I accessed the SSH connection through the Jenkins agent nodes. Once installed on my Ubuntu server, the agent nodes become Linux-based and use Flask (python framework) to develop and Gunicorn to deploy my Python web application. 
+ _________________________________
+### <ins>ISSUES:</ins>
+__________________________________
+* GitHub: Merged my branches before pushing making only a main branch. I needed to create a second branch to run the build through the agent node on the third server because the main branch was running on the second instance through the IP address already. 
 
-By: Annie V Lam - Kura Labs
+* Jenkinsfile: The second node wasn't working until I changed the agent node name in the Jenkinsfile in the second branch I needed to change the agent name to "awsDeploy2" and needed to change the hostname to the third instance's IP address.
 
-Purpose
-Use Jenkins agent to spin up the main infrastructure and deploy the banking application to for instances.
+* Deployment Process: After a successful test in Jenkins, my server was still unable to serve up the web application. I needed to run my Jenkins build multiple times, and upgrade my agent server, and then the application worked.
+________________________________________________________________________________
 
-Previously, we built and tested the application on one server before the Jenkins agent SSHed into a second server to deploy the application. For this deployment, a Jenkins agent uses Terraform init, plan, and apply the main infrastructure. In addition, deploy the application.
+### <ins> **STEPS FOR WEB APPLICATION DEPLOYMENT** </ins>
 
-Step #1 Diagram the VPC Infrastructure and the CI/CD Pipeline
-Deployment Diagram
+_____________________________________________________________________________
+### Step 1: Create a terraform file:
+__________________________________________________________________________
+	
+* Terraform is a great tool to automate the building of your application infrastructure instead of manually creating new instances with different installations separately. For this application, I wrote a terraform [main.tf](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/main.tf) file script in VS code. I created a main.tf file with defined variables and scripts for installation. For the first instance, the user data was connected to my [Jenkins script](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/jenkins.sh) to build and test my deployment. In the other two instances, the user data was connected to my [software script](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/software.sh) with the latest version of Python and automates the installation of dependencies for the python virtual environment. Including these scripts in the user data allowed me to automate their execution when Terraform created the instances. I also used a fourth server installed with [VS code](https://github.com/DANNYDEE93/Deployment5/blob/main/vscode.sh) and [Terraform](https://github.com/DANNYDEE93/Deployment5/blob/main/installterraform.sh) to use terraform in vs code to push to my remote Github repo. My main.tf file created an infrastructure that included: 
 
-Step #2 GitHub/Git
-Setup GitHub Repository for Jenkins Integration:
+**1 VPC: virtual private cloud to house the infrastructure elements*
 
-GitHub serves as the repository from which Jenkins retrieves files to build, test, and build the infrastructure for the banking application and deploy the banking application.
+**2 Availability Zones: chosen by referring back to the region in the subnets resource*
 
-In order for the EC2 instance, where Jenkins is installed, to access the repository, you need to generate a token from GitHub and then provide it to the EC2 instance.
+**2 Public Subnets*
 
-Generate GitHub Token
+**3 EC2 Instances in each subnet*
 
-GIT - Jenkins Agent Infrastructure
+**1 Route Table: with route table association resource block to connect route table to subnets and internet gateway*
 
-git clone https://github.com/kura-labs-org/LamAnnieV/deploy_6.git
-cd deploy_6/
-git init
-git branch second
-git switch second
-# Make a new directory jenkinsTerraform
-git add jenkinsTerraform
-# Create files main.tf, terraform.tfvars, variables.tf, installs1.sh, installs2.sh
-terraform init
-terraform validate
-terraform plan
-terraform apply
-# After the successful creation of the Jenkins Agent infrastructure
-git add main.tf terraform.tfvars variables.tf installs1.sh installs2.sh
-git commit -a
-#make a file .gitignore and put all the names of the files for git to ignore
-git push --set-upstream origin second
-git switch main
-git merge second
-git push --all
-GIT - update DATABASE_URL
+**1 Internet Gateway* 
 
-git switch second
-# For the files app.py, database.py, load_data.py update the database endpoint see step #4 below
-git commit -a
-git switch main
-git merge second
-git push --all
-GIT - Banking Application Infrastructure
+**1 Security Group (with ports: 22 for SSHing, 8080 for Jenkins main server, and 8000 for Gunicorn production web server)*
 
-git switch second
-#Run Jenkins build
-git switch main
-# In the directory "initTerraform", create files main.tf, terraform.tfvars, variables.tf, and deploy.sh
-terraform init
-terraform validate
-terraform plan
-terraform apply
-#After the successful creation of the Application Infrastructure
-terraform destroy
-git add main.tf terraform.tfvars variables.tf deploy.sh
-git commit -a
-#make a file .gitignore and put all the names of the files for git to ignore
-git switch main
-git merge second
-git push --all
-Step #3 Jenkins
-Jenkins
+_____________________________________________________________________
 
-Jenkins is used to automate the Build, Test, and Deploy the Banking Application. To use Jenkins in a new EC2, all the proper installs to use Jenkins and to read the programming language that the application is written in need to be installed. In this case, they are Jenkins, Java, and Jenkins' additional plugin "Pipeline Keep Running Step", which is manually installed through the GUI interface.
+<ins>Terraform steps to create infratructure </ins>
 
-Jenkins Agent Infrastructure
+* **Terraform init:** to initialize terraform and the backend configurations
 
-Use Terraform to spin up the Jenkins Agent Infrastructure to include the installs needed for the Jenkins instance and the install needed for the Jenkins agent instance, which includes Terraform.
+* **Terraform validate:** to validate that the terraform file is configured properly
 
-Setup Jenkins and Jenkins node
+* **Terraform plan:** to show exactly what will be created when applied
 
-Create a Key Pair
+* **Terraform apply:** to execute infrastructure script
 
-Configure Jenkins
+______________________________________________________________________________
+### Step 2: Git commits & Repo Changes 
+__________________________________________________________________________
 
-Instructions on how to configure the Jenkin node
+* Used VS code on my fourth instance and GitHub to make changes in my local repository. I added my GitHub URL in my .git config file to give the code editor permission to push changes to my remote repo on GitHub. I changed the agent name in the Jenkinsfile in the second branch, created my main.tf script, and included my scripts to download the applications I needed for my deployment and pushed my changes without merging so that each node could connect to their corresponding servers.
+  
+________________________________________________
+### Step 3: Configure and Run Jenkins Build
+__________________________________________________________
 
-Instructions on how to configure AWS access and secret keys, that the Jenkin node will need to execute Terraform scripts
+* Create Jenkins **Multibranch Pipeline** to build staging environment: Find instructions to access Jenkins in the web browser, create a multibranch pipeline, and create a token to link the GitHub repository with the application code to Jenkins [here](https://github.com/DANNYDEE93/Deployment4#step-8--create-staging-environment-in-jenkins). 
 
-Instructions on how to install the Pipleline Keep Running Step
+**app.py**: utilizes Flask for generating the web page, uses SQLAlchemy to connect with SQLite database, and uses rest APIs to render necessary information for customers, accounts, transactions, etc. of a banking web application.
 
-Step #4 Configure Amazon's Relational Database Service (RDS)
-RDS is used to manage the MySQL database in all four instances in this case. It can automate backups and sync the data across regions, availability zones, and instances. It also ensures security and reliability
+**test_app.py**: imports the Flask app object to test the home page route, checks that the web application server is running correctly, and responds with a 200 success code.
 
-How to configure RDS database.
+* [Instructions on how to create agent nodes in Jenkins.](https://scribehow.com/shared/Step-by-step_Guide_Creating_an_Agent_in_Jenkins__xeyUT01pSAiWXC3qN42q5w) *See the importance of the agent nodes explained further below.*
 
-Update the section in yellow, green, and blue of the Database endpoint in the following files: app.py, database.py, and load_data.py
+![system_diagram](static/images/D5.1nodes.png)
 
-DATABASE_URL
+____________________________________________________________________________
+### Step 5: Gunicorn Production Environment on Web Application Server
+__________________________________________________________________________
 
-DATABASE_URL
+* Gunicorn, installed in our Jenkinsfile application code, acts as my application's production web server running on port 8000 through the Jenkinsfile. The flask application, installed through the app.py and load_data.py scripts, uses Python with Gunicorn to create a framework or translation of the Python function calls into HTTP responses so that Gunicorn can access the endpoint which, in this case, is my web application HTTPS URL provisioned through the IP addresses of the agent servers.
+__________________________________________________________________________
 
-Images
+* In this deployment, the Jenkins agent nodes separate the responsibilities among multiple servers so the main server can focus on configurations and the **Pipeline Keep Running Steps** plugin, while the agent servers do the actual building of the application to handle configuration drift. The main Jenkins server delegates work to the agent nodes making it easier to scale my builds across multiple machines when necessary to handle resource contention and increase performance. Agent nodes also continuously run builds so if my main server goes down, the application can still initialize for deployment. Utilizing agent nodes is essentially installing a virtual machine on my EC2 virtual machine which increases allotted CPU, RAM, and MEM resources to increase the speed of my running processes.
+_______________________________________________________________________________
 
-Step #5 Use Jenkins Agent to execute the Terraform scripts to create the Banking Application Infrastructure
-For this application infrastructure, we want:
+<ins> **[Jenkinsfile](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/Jenkinsfile):** </ins>
 
-For each of the Regions (US-east-1 and US-west-2), we want: 
-1 VPC
-2 Availability Zones
-2 Public Subnets
-2 EC2 Instances
-1 Route Table
-1 Security Group with ports 22 and 8000
-To automate the construction of the banking application infrastructure, the instance with the Jenkins agent and Terraform will execute the Terraform scripts. The main.tf and variables.tf files, define the resources to be created and declare variables. Additionally, Terraform enables the execution of a deploy.sh that includes installing dependencies and deploying the banking application.
+<ins> ***Build Stage:** </ins> Prepares python(-venv) virtual environment by installing a python-pip package and Flask to develop the web application, and uses [load_data.py](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/load_data.py) to load the sample data and *
 
-The portion of the deploy.sh script that would deploy the application:
+<ins> ***Test(Validation) Stage:** </ins> Activates python -venv, installs and runs pytest for testing and archiving log reports in a JUnit results file*
 
-image
+<ins> ***Clean Stage:** </ins> Kills any old Gunicorn processes on the agent servers from previous builds to ensure we start with a clean deployment environment with our attached agent node*
 
-Jenkins Build: In Jenkins create a build "deploy_6" to run the file Jenkinsfilev for the Banking application from GitHub Repository https://github.com/LamAnnieV/deploy_6.git and run the build. This build consists of: The "Build", the "Test", the "Clean", (Terraform) "Init", (Terraform) "Plan", and (Terraform) "Apply" stages. The "Apply" stage also includes deploying the application.
+<ins> ***Deploy stage**: </ins> Activates python -venv, installs Gunicorn, runs the [database.py](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/database.py) script to import required SQLAlchemy libraries to store data in a **database.db** SQLite file, and initializes the Flask web application through Gunicorn in daemon mode*
 
-Results:
+* Since Gunicorn is running as a background process, the agent servers have more capacity to handle multiple tasks &e separately and simultaneously.
+    
+* Decreases latency because even if the SSH session is closed, the web app can continuously run, restart, or stop the application when necessary. 
+       
+* The main server's resources are balanced because Gunicorn can independently run its processes to handle more requests at a time. 
+	
+* Gunicorn is configured to output log files and metrics in JUnit format. 
 
-Success Build for all Stages
+<ins> ***Reminder stage:** </ins> Confirmation to the developer that the application is running on deployed on  web server*
 
-Image
+ ![system_diagram](static/images/d5.1jenkins.png)
 
-The application was launched from all four instances:
+* Copy and paste the public IP address of the agent servers and port 8000 **<ip_address:8000>** to run the deployment in a new browser. Again, this is established through the installations and dependencies that are connected to the agent nodes on each agent server.
 
-Images Images Images Images
+![system_diagram](static/images/D5.1deploy.jpg)
 
-Step #6 Configure Application Load Balancer to distribute the workload
-The purpose of an Application Load Balancer (ALB) is to evenly distribute incoming web traffic to multiple servers or instances to ensure that the application remains available, responsive, and efficient. It directs traffic to different servers to prevent overload on any single server. If one server is down, it can redirect traffic to the servers that are still up and running. This helps improve the performance, availability, and reliability of web applications, making sure users can access them without interruption, even if some servers have issues.
+___________________________________________
 
-How to configure Application Load Balancer
+### <ins>SYSTEM DIAGRAM:</ins>
+_________________________________________________
 
-Images
+![system_diagram](static/images/updated5.1systemd.jpg)
 
-Images
+_________________________________________________
 
-Step #7 Configure Amazon Route 53 DNS Service
-Amazon Route 53 is a scalable and highly available Domain Name System (DNS) web service provided by Amazon Web Services (AWS). It allows you to register domain names and manage their settings. It efficiently routes incoming DNS requests to the appropriate resources. In this case, it will be EC2 instances. This helps distribute traffic and improve the availability and performance of the applications. Route 53 can monitor the health of your resources and automatically route traffic away from failed resources to healthy ones. This is crucial for ensuring high availability and fault tolerance. Route 53 can be used to create sophisticated traffic routing policies based on geographic location, latency, weighted distribution, and more. This enables you to optimize the user experience and control how traffic is distributed.
+### <ins>OPTIMIZATION:</ins>
+_____________________________________________
 
-How to configure Amazon DNS Service Route 53
+&emsp;&emsp;&emsp;&emsp;	Jenkins was particularly important in the optimization and error handling of the deployment. The Jenkins server is accessible through port 8080, while the web server is accessible by our banking customers through port 8000. The Jenkins application server should be placed in a private subnet with a map to an NACL in a terraform file. We don't want users to access the installations and dependencies needed to ensure the stability of the web application server. The agent servers/ web production servers should stay in the public subnet so that users can have reliable access to the Gunicorn web servers provisioned on them.
 
-Images
+&emsp;&emsp;&emsp;&emsp;	Having one server for building and testing and using the other servers for deploying ensures that there won't be performance issues from running out of disk space on the instances from resource contention. Having everything done on one server like in previous deployments and if the server goes down, it can lead to a negative user experience, makes it harder for the development team to troubleshoot where the issue is coming from, and can cause configuration drift because having a single server responsible for the whole deployment process leaves the server with less capacity to ensure proper configuration of the necessary applications and dependencies to deploy the application.  
 
-Images
+<ins> **Other ways to optimize and increase user availability of my deployment:** </ins>
 
-Issue(s)
-Most of the challenges revolved around Terraform, not having enough AWS resources and user error
+<ins>1. Enhancing the automation of the AWS Cloud Infrastructure:</ins> 
 
-When updating the database endpoint in the files, had to try two different options to figure out which one was the actual database name DB instance identifier or initial database name. It was the initial database name.
-When configuring the RDS, port 3306 was initially not configured, which caused an unsuccessful test stage
-How to create a two-region infrastructure with one main.tf. It was simply giving an alias to the second provider, and inserting the provider = aws. for each block related to that provider. The other blocks will default to the main provider.
-Terraform was giving an error that there was not enough CPU or internet gateways available. Had to terminate unused resources, before re-running Terraform
-When configuring the application load balancer, selecting the correct VPC was missed. Had to recreate the load balancer
-Area(s) for Optimization:
-Enhance automation of the AWS Cloud Infrastructure by implementing Terraform modules.
-Using Auto Scaling Groups in conjunction with the ALB for dynamic scaling based on traffic load.
-Use Dockerfiles to deploy the application
-Note: ChatGPT was used to enhance the quality and clarity of this documentation
+ * Implementing Terraform modules(reusable infrastructure definitions to reduce error and increase efficiency). 
+
+ * Including private subnet for the application/ Jenkins server to increase security and availability by protecting my Jenkins application server from unauthorized access.
+
+ * Including "aws_autoscaling_policy" resource to scale up or down as needed (ex. when resources like CPU reach a certain utilization), detect unhealthy instances and replace them, and automate recovery by redeploying failed instances.
+
+<ins>2. Error handling:</ins> Create webhook to automatically trigger Jenkins build when there are changes to my GitHub repository to detect if any changes disrupt or optimize my deployment, reduce the risk of latency, and fix bugs for faster deployments. 
+
+<ins>3. Using a cloud-based Jenkins agent:</ins> In this deployment, my Jenkins agent nodes are running with the AWS cloud. While using multiple cloud providers can be more complex and costly, it comes with greater flexibility so you don't have to be locked in with one vendor or provider, and improved reliability and performance as different providers come with different advantages and resources.
+
+<ins>4. Using a containerized Jenkins agent:</ins> 
+
+ * Simplified management: Containerized and cloud-based Jenkins agents are easier to manage than traditional Jenkins agents because you do not need to install and maintain Jenkins on each machine. The dependencies come installed within each container. This can be achieved through a regular operating system but can be done quicker and safer through the Docker runtime engine. 
+
+ * Increased scalability: Easier to add or remove Jenkins agents as needed, reducing resource contention.
+
+ * Reduced costs because you can run multiple Jenkins agents on the same machine or in the cloud, reducing the need for multiple virtual machines/ec2 instances.
+
+ * Reduced complexities with configurations.
