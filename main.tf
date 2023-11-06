@@ -1,9 +1,3 @@
-separate instances in main.tf
-
-make the key
-update the tfvars
-then terraform destroy 
-
 # configure aws provider
 provider "aws" {
   alias = "us-east-1"
