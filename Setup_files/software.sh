@@ -24,7 +24,7 @@ sudo apt install -y libmysqlclient-dev
 #installs Python 3.7 files for app development
 sudo apt install -y python3.7-dev
 
-#create virtual environment
+#create python virtual environment
 python3.7 -m venv test
 
 source test/bin/activate
@@ -36,14 +36,13 @@ cd Deployment6
 #install Dependencies
 pip install -r requirements.txt
 
-pip install gunicorn
+pip install -y gunicorn
 
-pip install mysqlclient
+pip install -y mysqlclient
 
 #start Application
 python -m gunicorn app:app -b 0.0.0.0 -D
 
-#upgrade installed packages
-sudo apt upgrade
+
 
 
