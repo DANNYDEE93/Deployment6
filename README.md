@@ -4,6 +4,12 @@ _________________________________________________
 ##### October 28, 2023
 ______________________________________
 ### <ins>PURPOSE:</ins>
+
+
+
+With both infrastructures deployed, is there anything else we should add to our infrastructure?
+
+
 ___________________
 &emsp;&emsp;&emsp;&emsp;	Instead of manually building, testing, and deploying in previous deployments, I utilized Terraform to automate the creation of a Jenkins agent infrastructure across 6 different servers within the N. Virginia and Oregon regions available in AWS cloud. I focused on reducing reducing resource contention by creating a larger Jenkins infrastructure compared to my Deployment 5.1. Using terraform to create my Jenkins manager server and main agent server in one availability zone, and additionally using terraform on my main agent server to create 4 more Jenkins agent servers in east and west regions, reduced my chances at having a single point of failure in case one of my AZ's has network failures. It also helps decrease my chances of downtime because if one server in one region goes down, I have another server available for incoming traffic. The use of my Jenkins agent nodes also help distribute the workload across the servers and provides reliability in the production of my web application. Lastly, I optimized my infrastructure further by creating load balancers for each availability zone to improve the performace and reliability of my web applications deployed on each server by evenly distributing incoming traffic so as not to overload my servers with client and user requests. 
 
