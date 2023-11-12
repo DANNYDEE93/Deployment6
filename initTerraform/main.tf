@@ -1,17 +1,8 @@
-<<<<<<< HEAD
-=======
-# configure aws provider
->>>>>>> 1e04ae357ac50996fa185d9f4a18295fd1b067b2
 provider "aws" {
   alias = "us-east-1"
   access_key = var.access_key
   secret_key = var.secret_key
-<<<<<<< HEAD
   region = "us-east-1"
-}
-
-=======
-  region = var.regionvpc1
 }
 
 resource "aws_vpc" "default-vpc-east" {
