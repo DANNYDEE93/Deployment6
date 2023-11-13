@@ -35,10 +35,22 @@ ________________________________________________________________________________
 _________________________________________________________________________________
 
 
+### <ins>SYSTEM DIAGRAM:</ins>
+_________________________________________________
 
+![system_diagram](static/images/updated5.1systemd.jpg)
+
+_________________________________________________
+
+
+______________________________________________________________________________
+### Step 2: Git commits & Repo Changes 
+__________________________________________________________________________
+
+* Used VS code on my fourth instance and GitHub to make changes in my local repository. I added my GitHub URL in my .git config file to give the code editor permission to push changes to my remote repo on GitHub. I changed the agent name in the Jenkinsfile in the second branch, created my main.tf script, and included my scripts to download the applications I needed for my deployment and pushed my changes without merging so that each node could connect to their corresponding servers.
 
 _____________________________________________________________________________
-### Step 2: Create a terraform file:
+### Step 3: Create Jenkins Infrastructure with Terraform:
 __________________________________________________________________________
 	
 * Terraform is a great tool to automate the building of your application infrastructure instead of manually creating new instances with different installations separately. For this application, I wrote a terraform [main.tf](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/main.tf) file script in VS code. I created a main.tf file with defined variables and scripts for installation. For the first instance, the user data was connected to my [Jenkins script](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/jenkins.sh) to build and test my deployment. In the other two instances, the user data was connected to my [software script](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/software.sh) with the latest version of Python and automates the installation of dependencies for the python virtual environment. Including these scripts in the user data allowed me to automate their execution when Terraform created the instances. I also used a fourth server installed with [VS code](https://github.com/DANNYDEE93/Deployment5/blob/main/vscode.sh) and [Terraform](https://github.com/DANNYDEE93/Deployment5/blob/main/installterraform.sh) to use terraform in vs code to push to my remote Github repo. My main.tf file created an infrastructure that included: 
@@ -69,21 +81,28 @@ _____________________________________________________________________
 
 * **Terraform apply:** to execute infrastructure script
 
-______________________________________________________________________________
-### Step 3: Git commits & Repo Changes 
+_____________________________________________________________________________
+### Step 4: Create Application Infrastructure with Terraform:
 __________________________________________________________________________
-
-* Used VS code on my fourth instance and GitHub to make changes in my local repository. I added my GitHub URL in my .git config file to give the code editor permission to push changes to my remote repo on GitHub. I changed the agent name in the Jenkinsfile in the second branch, created my main.tf script, and included my scripts to download the applications I needed for my deployment and pushed my changes without merging so that each node could connect to their corresponding servers.
 
 
 ____________________________________________________________________________
 ### Step 5: Configure RDS Database
 __________________________________________________________________________
 
-  
+  why?
+  Additiins to 
+  load_data.py
+  database.py
+  app.py
 ________________________________________________
-### Step 4: Configure Jenkins Agent Infrastructure/ Build & Test in Jenkins 
+### Step 6: Configure Jenkins Agent Nodes/ Build & Test in Jenkins 
 __________________________________________________________
+
+-aws credentials
+-Agent nodes
+-pipeline keep running steps
+
 
 * Create Jenkins **Multibranch Pipeline** to build staging environment: Find instructions to access Jenkins in the web browser, create a multibranch pipeline, and create a token to link the GitHub repository with the application code to Jenkins [here](https://github.com/DANNYDEE93/Deployment4#step-8--create-staging-environment-in-jenkins). 
 
@@ -95,18 +114,6 @@ __________________________________________________________
 
 ![system_diagram](static/images/D5.1nodes.png)
 
-
-
-
-____________________________________________________________________________
-### Step 5: Gunicorn Production Environment on Web Application Server
-__________________________________________________________________________
-
-* Gunicorn, installed in our Jenkinsfile application code, acts as my application's production web server running on port 8000 through the Jenkinsfile. The flask application, installed through the app.py and load_data.py scripts, uses Python with Gunicorn to create a framework or translation of the Python function calls into HTTP responses so that Gunicorn can access the endpoint which, in this case, is my web application HTTPS URL provisioned through the IP addresses of the agent servers.
-__________________________________________________________________________
-
-* In this deployment, the Jenkins agent nodes separate the responsibilities among multiple servers so the main server can focus on configurations and the **Pipeline Keep Running Steps** plugin, while the agent servers do the actual building of the application to handle configuration drift. The main Jenkins server delegates work to the agent nodes making it easier to scale my builds across multiple machines when necessary to handle resource contention and increase performance. Agent nodes also continuously run builds so if my main server goes down, the application can still initialize for deployment. Utilizing agent nodes is essentially installing a virtual machine on my EC2 virtual machine which increases allotted CPU, RAM, and MEM resources to increase the speed of my running processes.
-_______________________________________________________________________________
 
 <ins> **[Jenkinsfile](https://github.com/DANNYDEE93/Deployment-5.1/blob/main/Jenkinsfile):** </ins>
 
@@ -134,14 +141,21 @@ _______________________________________________________________________________
 
 ![system_diagram](static/images/D5.1deploy.jpg)
 
-___________________________________________
 
-### <ins>SYSTEM DIAGRAM:</ins>
-_________________________________________________
 
-![system_diagram](static/images/updated5.1systemd.jpg)
 
-_________________________________________________
+____________________________________________________________________________
+### Step 7: Gunicorn Production Environment on Web Application Server
+__________________________________________________________________________
+
+* Gunicorn, installed in our Jenkinsfile application code, acts as my application's production web server running on port 8000 through the Jenkinsfile. The flask application, installed through the app.py and load_data.py scripts, uses Python with Gunicorn to create a framework or translation of the Python function calls into HTTP responses so that Gunicorn can access the endpoint which, in this case, is my web application HTTPS URL provisioned through the IP addresses of the agent servers.
+__________________________________________________________________________
+
+* In this deployment, the Jenkins agent nodes separate the responsibilities among multiple servers so the main server can focus on configurations and the **Pipeline Keep Running Steps** plugin, while the agent servers do the actual building of the application to handle configuration drift. The main Jenkins server delegates work to the agent nodes making it easier to scale my builds across multiple machines when necessary to handle resource contention and increase performance. Agent nodes also continuously run builds so if my main server goes down, the application can still initialize for deployment. Utilizing agent nodes is essentially installing a virtual machine on my EC2 virtual machine which increases allotted CPU, RAM, and MEM resources to increase the speed of my running processes.
+_______________________________________________________________________________
+
+
+
 
 ### <ins>OPTIMIZATION:</ins>
 _____________________________________________
