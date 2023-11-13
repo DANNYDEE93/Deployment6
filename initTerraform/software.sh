@@ -40,6 +40,10 @@ pip install -y gunicorn
 
 pip install -y mysqlclient
 
+python database.py
+
+python load_data.py
+
 #start Application
 python -m gunicorn app:app -b 0.0.0.0 -D
 
