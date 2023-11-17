@@ -96,15 +96,21 @@ __________________________________________________________
 <ins> **Build & Test(Validation) Stage:** </ins> 
 
 *Prepares python(-venv) virtual environment by installing a python-pip package and python requirements, and uses load_data.py file to load the sampe data*
+
 *Activates python -venv, installs and runs pytest for testing and archiving log reports in a JUnit results file* 
+
 *Installs mySQLclient to use the data from the database.py file*
 
 <ins>**Terraform stages:** </ins> 
 
 * Automated the execution of my infrastructure through *Init, Plan, Apply*:
+  
 *Terraform init: to initialize terraform and the backend configurations*
+
 *Terraform validate: to validate that the terraform file is configured properly*
+
 *Terraform plan: to show exactly what will be created when applied*
+
 *Terraform apply: to execute infrastructure script*
 
 ___________________________________________________________________________
@@ -116,6 +122,7 @@ __________________________________________________________________________
 * The Jenkins agent node separates the responsibility on my Terraform agent server so the main server can focus on configurations and the **Pipeline Keep Running Steps** plugin, while the agent servers do the actual building of the application to handle configuration drift. The Jenkins manager server delegates work to the agent node making it easier to scale my builds across multiple machines when necessary to handle resource contention and increase performance. Agent nodes also continuously run builds so if my main server goes down, the application can still initialize for deployment. Utilizing agent nodes is essentially installing a virtual machine on my EC2 instances which increases allotted CPU, RAM, and MEM resources to increase the speed of my running processes when deploying my application.
   
 * My load balancer is essential in this deployment because it can properly distribute traffic evenly across my 4 application servers, aids in lowering latency and downtime. Having more servers for users, allows my servers more capacity to ensure proper configuration of the necessary applications and dependencies to deploy the application and in return creates a positive user experience.
+
 * My RDS Database ensures less performance issues from running out of disk space as new data is stored from uaers accessing my application.
   
 _________________________________________________
