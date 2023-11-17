@@ -39,13 +39,17 @@ __________________________________________________________________________
 * <ins>Created a second [main.tf](initTerraform/main.tf) file for the application infrastructure to fully deploy my application after running myJenkins pipeline. The user data necessary for clients to access my application across all 4 servers was automatically installed upon creation through Terraform with my software script:</ins>
 
  	</ins>My main.tf file created an infrastructure with 1 VPC in "us-east-1" and 1 VPC in "us-west-2" creating high redundancy and included:</ins>
-   	*2 AZ's
-   	*2 Public Subnets
-   	*2 EC2's
-   	*1 Route Table* 
-   	*Security Group Ports: 22 (for SSH connection between the Jenkins manager and agent nodes/servers) and 8000 (for our app to use Gunicorn as a production web server)*
-  	*1 Application Load Balancer (distributes traffic load across all four of my servers):*
-  		*Indirectly lowering latency and increased throughput by improving the performance of my infrastructure and increasing availability to users so that my servers don't get 			overwhelmed with requests.
+  *2 AZ's
+  
+  *2 Public Subnets
+  
+  *2 EC2's
+  
+  *1 Route Table*
+  
+  *Security Group Ports: 22 (for SSH connection between the Jenkins manager and agent nodes/servers) and 8000 (for our app to use Gunicorn as a production web server)*
+
+  *1 Application Load Balancer (distributes traffic load across all four of my servers):* Indirectly lowering latency and increased throughput by improving the performance of my infrastructure and increasing availability to users so that my servers don't get	overwhelmed with requests.
   
 * </ins>Running my [software.sh](Setup_files/software.sh) across all my servers allowed me to save time from separately downloading my app's dependencies on each server:</ins>
 
@@ -53,7 +57,7 @@ __________________________________________________________________________
   		* pip install -r requirements.txt *(ensures that the necessary Python packages and dependencies specified in the file are installed for my virtual environment)*
   		* pip install -y gunicorn *(automatically confirms and installs Gunicron web server)*
   		* pip install -y mysqlclient *(automatically installs client library necessary for my sqlite database)*
-  		* python -m gunicorn app:app -b 0.0.0.0 -D *(runs the Gunicorn server and binds it to all available network interfaces attached to my VPC, specify entrypoint and endpoint for 			the application, and runs Gunicorn as a daemon process)*
+  		* python -m gunicorn app:app -b 0.0.0.0 -D *(runs the Gunicorn server and binds it to all available network interfaces attached to my VPC, specify entrypoint and endpoint for the application, and runs Gunicorn as a daemon process)*
 
 <ins>**Configure RDS Database**</ins>
 __________________________________________________________________________
@@ -98,7 +102,7 @@ ___________________________________________________________________________
 ### Step 4: Gunicorn Production Environment
 __________________________________________________________________________
 
-* Gunicorn acts as my application's production web server running on port 8000 through the software script installed on the 4 application servers. The flask application, installed through the app.py and load_data.py database files, uses Python with Gunicorn to create a framework or translation of the Python function calls into HTTP responses so that Gunicorn can access the endpoint which, in this case, is my web application HTTPS URL provisioned through my load balancer.
+* Gunicorn acts as my application's production web server running on port 8000 through the software script installed on the 4 application servers. The flask application, installed through the app.py and load_data.py database files, uses Python with Gunicorn to create a framework or translation of the Python function calls into HTTP responses so that Gunicorn can access the endpoint which, in this case, is my web application HTTPS URL provisioned through my load balancer. Eith Gunicorn running as a background process allows me to easily manage and enhance the reliability of my app because even if the terminal is closed, the web application can still run allowing for zero downtime for clients and users. The daemon process helps isolate connections within my app so different components can be modified without being affected all at once. It also add a level of security because it is harder for people with proper permissions to accidentally make unwanted modifications to the servers processes.
 * The Jenkins agent node separates the responsibility on my Terraform agent server so the main server can focus on configurations and the **Pipeline Keep Running Steps** plugin, while the agent servers do the actual building of the application to handle configuration drift. 
 * The Jenkins manager server delegates work to the agent node making it easier to scale my builds across multiple machines when necessary to handle resource contention and increase performance. Agent nodes also continuously run builds so if my main server goes down, the application can still initialize for deployment. Utilizing agent nodes is essentially installing a virtual machine on my EC2 instances which increases allotted CPU, RAM, and MEM resources to increase the speed of my running processes when deploying my application.
 * My load balancer is essential in this deployment because it can properly distribute traffic evenly across my 4 application servers, aids in lowering latency and downtime. Having more servers for users, allows my servers more capacity to ensure proper configuration of the necessary applications and dependencies to deploy the application and in return creates a positive user experience.
