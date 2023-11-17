@@ -12,7 +12,8 @@ _________________________________________________________
 __________________________________________________________
 
 &emsp;&emsp;&emsp;&emsp; In the Jenkins infrastructure, I used the Jenkins software, the latest version of python through Deadsnakes PPA, and Java environment so that the agent servers could recognize ane be compatible with the Jenkins main server. The agent node is operated by the Jenkins main server to use terraform and import Flask for development and install Gunicorn on the agent servers. Instead of using commands to establish an SSH connection in the Jenkinsfile, I accessed the SSH connection through the Jenkins agent nodes. Once installed on my Ubuntu server, the agent nodes become Linux-based using Flask (python framework) to develop and Gunicorn to deploy my Python web application. 
-&emsp;&emsp;&emsp;&emsp; With the use of an RDS Database, I created a 2 tier by separating my database server from my application server with 3 logical layers -- the application servers dually acted as the web server with Gunicron running as a daemon process on the application server. Building my infrastructure across 2 servers in 2 different VPC's across two regions of "us-east-1" and "us-west-2" and having a server in 4 different AZ's decreased the risk of having a single point of failure and building infrastructure as code makes it easily replicable to scale as needed. 
+
+&emsp;&emsp;&emsp;&emsp; With the use of an RDS Database, I created a 2 tier by separating my database server from my application server with 3 logical layers -- the application servers dually acted as the web server with Gunicorn running as a daemon process on the application server. Building my infrastructure across 2 servers in 2 different VPC's across two regions of "us-east-1" and "us-west-2" and having a server in 4 different AZ's decreased the risk of having a single point of failure and building infrastructure as code makes it easily replicable to scale as needed. 
 
  _________________________________
 ### <ins>ISSUES:</ins>
@@ -28,6 +29,7 @@ ________________________________________________________________________________
 ### Step 1: Diagram the infrastructure for Web Application Deployment
 _________________________________________________________________________________
 
+![sd](static/DEPLOYMENT6.drawio.png)
 
 _____________________________________________________________________________
 ### Step 2: Create a terraform file:
@@ -93,7 +95,6 @@ __________________________________________________________
 <ins>>**Terraform stages:** </ins> 
 
 * Automated the execution of my infrastructure through *Init, Plan, Apply*:
-
 *Terraform init: to initialize terraform and the backend configurations*
 *Terraform validate: to validate that the terraform file is configured properly*
 *Terraform plan: to show exactly what will be created when applied*
@@ -104,8 +105,9 @@ ___________________________________________________________________________
 __________________________________________________________________________
 
 * Gunicorn acts as my application's production web server running on port 8000 through the software script installed on the 4 application servers. The flask application, installed through the app.py and load_data.py database files, uses Python with Gunicorn to create a framework or translation of the Python function calls into HTTP responses so that Gunicorn can access the endpoint which, in this case, is my web application HTTPS URL provisioned through my load balancer. Eith Gunicorn running as a background process allows me to easily manage and enhance the reliability of my app because even if the terminal is closed, the web application can still run allowing for zero downtime for clients and users. The daemon process helps isolate connections within my app so different components can be modified without being affected all at once. It also add a level of security because it is harder for people with proper permissions to accidentally make unwanted modifications to the servers processes.
-* The Jenkins agent node separates the responsibility on my Terraform agent server so the main server can focus on configurations and the **Pipeline Keep Running Steps** plugin, while the agent servers do the actual building of the application to handle configuration drift. 
-* The Jenkins manager server delegates work to the agent node making it easier to scale my builds across multiple machines when necessary to handle resource contention and increase performance. Agent nodes also continuously run builds so if my main server goes down, the application can still initialize for deployment. Utilizing agent nodes is essentially installing a virtual machine on my EC2 instances which increases allotted CPU, RAM, and MEM resources to increase the speed of my running processes when deploying my application.
+  
+* The Jenkins agent node separates the responsibility on my Terraform agent server so the main server can focus on configurations and the **Pipeline Keep Running Steps** plugin, while the agent servers do the actual building of the application to handle configuration drift. The Jenkins manager server delegates work to the agent node making it easier to scale my builds across multiple machines when necessary to handle resource contention and increase performance. Agent nodes also continuously run builds so if my main server goes down, the application can still initialize for deployment. Utilizing agent nodes is essentially installing a virtual machine on my EC2 instances which increases allotted CPU, RAM, and MEM resources to increase the speed of my running processes when deploying my application.
+  
 * My load balancer is essential in this deployment because it can properly distribute traffic evenly across my 4 application servers, aids in lowering latency and downtime. Having more servers for users, allows my servers more capacity to ensure proper configuration of the necessary applications and dependencies to deploy the application and in return creates a positive user experience.
 * My RDS Database ensures less performance issues from running out of disk space as new data is stored from uaers accessing my application.
   
@@ -113,8 +115,12 @@ _________________________________________________
 ### <ins>OPTIMIZATION:</ins>
 _____________________________________________
 
-* AWS Route 53 is a scalable domain name system (DNS) managed web service that operates at the app layer and provides health checks, traffic routing policies, and SSL certificate management. The system used along with my load balancer could help increase my productivity around traffic management. 
+* AWS Route 53 is a scalable domain name system (DNS) managed web service that operates at the app layer and provides health checks, traffic routing policies, and SSL certificate management. The system used along with my load balancer could help increase my productivity around traffic management.
+  
 * Including private subnet for the application/ Jenkins server to increase security and availability by protecting my Jenkins application server from unauthorized access.
-* Implementing Terraform modules(reusable infrastructure definitions to reduce error and increase efficiency). 
-* Including "aws_autoscaling_policy" resource in Terraform or utilize Kubernetes' autoscaler component to scale up or down as needed (ex. when resources like CPU reach a certain utilization), detect unhealthy instances and replace them, and automate recovery by redeploying failed instances. 
+  
+* Implementing Terraform modules(reusable infrastructure definitions to reduce error and increase efficiency).
+  
+* Including "aws_autoscaling_policy" resource in Terraform or utilize Kubernetes' autoscaler component to scale up or down as needed (ex. when resources like CPU reach a certain utilization), detect unhealthy instances and replace them, and automate recovery by redeploying failed instances.
+  
 * Create webhook throguh GitHub or Kubernetes to automatically trigger Jenkins build when there are changes to my GitHub repository to detect if any changes disrupt or optimize my deployment, reduce the risk of latency, and fix bugs for faster deployments. Additonally, I could use Lambda to potentially record any changes to my repo as an event that can trigger the function to run a new build in my Jenkins pipeline. 
