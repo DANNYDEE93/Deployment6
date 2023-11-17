@@ -41,25 +41,24 @@ __________________________________________________________________________
 
 * <ins>Created a second [main.tf](initTerraform/main.tf) file for the application infrastructure to fully deploy my application after running myJenkins pipeline. The user data necessary for clients to access my application across all 4 servers was automatically installed upon creation through Terraform with my software script:</ins>
 
- 	</ins>My main.tf file created an infrastructure with 1 VPC in "us-east-1" and 1 VPC in "us-west-2" creating high redundancy and included:</ins>
-  *2 AZ's
+ 	 * </ins>My main.tf file created 1 VPC in "us-east-1" and 1 VPC in "us-west-2" creating high redundancy and included:</ins>
   
-  *2 Public Subnets
-  
-  *2 EC2's
-  
-  *1 Route Table*
-  
-  *Security Group Ports: 22 (for SSH connection between the Jenkins manager and agent nodes/servers) and 8000 (for our app to use Gunicorn as a production web server)*
+      *2 AZ's, 2 Public Subnets, 2 EC2's, 1 Route Table
 
-  *1 Application Load Balancer (distributes traffic load across all four of my servers):* Indirectly lowering latency and increased throughput by improving the performance of my infrastructure and increasing availability to users so that my servers don't get	overwhelmed with requests.
+      *Security Group Ports: 22 (for SSH connection between the Jenkins manager and agent nodes/servers) and 8000 (for our app to use Gunicorn as a       
+      production web server)*
+
+      *1 Application Load Balancer (distributes traffic load across all four of my servers):* Indirectly lowering latency and increased throughput by   
+      improving the performance of my infrastructure and increasing availability to users so that my servers don't get	overwhelmed with requests.
   
 * </ins>Running my [software.sh](Setup_files/software.sh) across all my servers allowed me to save time from separately downloading my app's dependencies on each server:</ins>
 
   	<ins>Along with installing the latest version of Python and the virtual environment, it downloaded my GitHub repo and installs the necessary dependencies in my repo's directory:</ins>
   		* pip install -r requirements.txt *(ensures that the necessary Python packages and dependencies specified in the file are installed for my virtual environment)*
   		* pip install -y gunicorn *(automatically confirms and installs Gunicron web server)*
+  
   		* pip install -y mysqlclient *(automatically installs client library necessary for my sqlite database)*
+  
   		* python -m gunicorn app:app -b 0.0.0.0 -D *(runs the Gunicorn server and binds it to all available network interfaces attached to my VPC, specify entrypoint and endpoint for the application, and runs Gunicorn as a daemon process)*
 
 <ins>**Configure RDS Database**</ins>
@@ -75,24 +74,30 @@ __________________________________________________________________________
 **endpoint** to locate the database system where my sqlite database file will not be stored and rused to return data being requested by a client
 **RDS Database name** to connect and store my database files in the managed service
   
-**Database files**: *[load_data.py](load_data.py)*: utilized SQL to grab data from the database along with Flask and Bcrpyt for flexibility of rest API's and microservices, as well as, password encryption, and loads data to return it back to the client, *[database.py](database.py)*: utilizes SQL to organize and structure the data into tables; stores proprietary information such as account numbers and transactions of account holders, *[app.py](app.py)*: utilizes Flask for generating the web page, uses SQL Alchemy to connect with SQLite database, and uses rest APIs to render necessary information for customers, accounts, transactions, etc. of a banking web application.
+**Database files**: 
+*[load_data.py](load_data.py)*: utilized SQL to grab data from the database along with Flask and Bcrpyt for flexibility of rest API's and microservices, as well as, password encryption, and loads data to return it back to the client
+
+*[database.py](database.py)*: utilizes SQL to organize and structure the data into tables; stores proprietary information such as account numbers and transactions of account holders
+
+*[app.py](app.py)*: utilizes Flask for generating the web page, uses SQL Alchemy to connect with SQLite database, and uses rest APIs to render necessary information for customers, accounts, transactions, etc. of a banking web application.
 
 ________________________________________________
 ### Step 3: Jenkins Staging Environment
 __________________________________________________________
 
 * The Jenkins server, accessible through port 8080, was particularly important in the optimization and error handling of the deployment.
+  
 * Create Jenkins **Multibranch Pipeline** to build staging environment: Find instructions to access Jenkins in the web browser, create a multibranch pipeline, and create a token to link the GitHub repository with the application code to Jenkins. "Pipeline keep running plugin" is used to run the Jenkins build for as long as the applicaiton is up and running on the servers. I also provided my AWS credentials to give Jenkins permission to access my AWS servers and run on my Jenkins pipeline.
 
 <ins> **[Jenkinsfile](https://github.com/DANNYDEE93/Deployment6/blob/main/Jenkinsfile):** </ins>
 
-<ins> ***Build & Test(Validation) Stage:** </ins> 
+<ins> **Build & Test(Validation) Stage:** </ins> 
 
 *Prepares python(-venv) virtual environment by installing a python-pip package and python requirements, and uses load_data.py file to load the sampe data*
 *Activates python -venv, installs and runs pytest for testing and archiving log reports in a JUnit results file* 
 *Installs mySQLclient to use the data from the database.py file*
 
-<ins>>**Terraform stages:** </ins> 
+<ins>**Terraform stages:** </ins> 
 
 * Automated the execution of my infrastructure through *Init, Plan, Apply*:
 *Terraform init: to initialize terraform and the backend configurations*
