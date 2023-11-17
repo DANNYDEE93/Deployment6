@@ -70,9 +70,11 @@ __________________________________________________________________________
 
 "DATABASE_URL = 'mysql+mysqldb://**admin:abcd1234**@**mydatabase.c8zeygvvghbp.us-east-1.rds.amazonaws.com**/**banking**?charset=utf8mb4"
 
-**username and password** I made when i gave my RDS Database some configuration for additional security on the database which helps to block users from accessing sensitive information 
-**endpoint** to locate the database system where my sqlite database file will not be stored and rused to return data being requested by a client
-**RDS Database name** to connect and store my database files in the managed service
+* **username and password** I made when i gave my RDS Database some configuration for additional security on the database which helps to block users from accessing sensitive information
+  
+* **endpoint** to locate the database system where my sqlite database file will not be stored and rused to return data being requested by a client
+
+* **RDS Database name** to connect and store my database files in the managed service
   
 **Database files**: 
 *[load_data.py](load_data.py)*: utilized SQL to grab data from the database along with Flask and Bcrpyt for flexibility of rest API's and microservices, as well as, password encryption, and loads data to return it back to the client
