@@ -62,7 +62,7 @@ __________________________________________________________________________
   
 * </ins>In order for my RDS Database to manage and store my data, I manually edited my database files:</ins>
 
-[ DATABASE_URL = 'mysql+mysqldb://**admin:abcd1234**@**mydatabase.c8zeygvvghbp.us-east-1.rds.amazonaws.com**/**banking**?charset=utf8mb4 ]
+"DATABASE_URL = 'mysql+mysqldb://**admin:abcd1234**@**mydatabase.c8zeygvvghbp.us-east-1.rds.amazonaws.com**/**banking**?charset=utf8mb4"
 
 **username and password** I made when i gave my RDS Database some configuration for additional security on the database which helps to block users from accessing sensitive information 
 **endpoint** to locate the database system where my sqlite database file will not be stored and rused to return data being requested by a client
